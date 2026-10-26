@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aurora IPTV — Manage Playlists</title>
+<style>
+:root{--bg:#060914;--line:rgba(255,255,255,.14);--tx:#f2f4ff;--mu:#9aa3c7;--a:#7c5cff;--b:#19d3c5;--grad:linear-gradient(135deg,var(--a),var(--b))}
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(50% 40% at 12% 8%,rgba(124,92,255,.45),transparent 70%),radial-gradient(40% 40% at 92% 18%,rgba(25,211,197,.3),transparent 70%),radial-gradient(45% 45% at 60% 100%,rgba(255,92,170,.22),transparent 70%),var(--bg);color:var(--tx);font:15px/1.6 "Segoe UI",system-ui,Tahoma,sans-serif;padding:28px 16px}
+.w{max-width:980px;margin:auto;display:grid;gap:18px}.card{background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:20px;padding:22px;backdrop-filter:blur(16px)}
+.lg{max-width:430px;margin:8vh auto 0;text-align:center;display:grid;gap:14px}.logo{width:72px;height:72px;margin:auto;border-radius:20px;background:var(--grad);display:grid;place-items:center;box-shadow:0 12px 40px rgba(124,92,255,.5)}
+.logo svg{width:34px;height:34px;fill:#06101a}h1{margin:0;font-size:24px}h2{margin:0}label{display:grid;gap:6px;text-align:start;color:var(--mu);font-size:13px}
+input,select{background:rgba(0,0,0,.4);border:1px solid var(--line);border-radius:12px;padding:12px 14px;color:var(--tx);font:inherit;width:100%}input:focus,select:focus{outline:2px solid var(--b);outline-offset:1px}
+button{border:0;border-radius:12px;padding:11px 18px;font:inherit;font-weight:700;cursor:pointer;color:#06101a;background:var(--grad)}button.g{background:rgba(255,255,255,.1);color:var(--tx);font-weight:500}button.r{background:#ff5d6c;color:#fff}
+.err{color:#ff8a8a;min-height:1.4em;font-size:14px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.top small{color:var(--mu);display:block}
+.info{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}.box{background:rgba(0,0,0,.3);border:1px solid var(--line);border-radius:14px;padding:12px 16px}.box small{color:var(--mu);letter-spacing:1px;font-size:11px}.box b{display:block;font-size:20px;letter-spacing:1px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}.bar .sp{flex:1}.bar input{max-width:240px}
+table{width:100%;border-collapse:collapse}th,td{text-align:start;padding:11px 10px;border-bottom:1px solid var(--line);word-break:break-all}th{color:var(--mu);font-size:12px;letter-spacing:1px;text-transform:uppercase}td.a{white-space:nowrap}td.a button{padding:6px 12px;font-size:13px;margin-inline-end:6px}
+.tag{background:var(--grad);color:#06101a;border-radius:99px;padding:1px 10px;font-size:12px;font-weight:700}.mu{color:var(--mu)}
+#md{position:fixed;inset:0;background:rgba(3,5,14,.75);display:grid;place-items:center;padding:16px;z-index:9}#md[hidden]{display:none}.mc{width:min(480px,100%);display:grid;gap:12px;background:#0f1530;border:1px solid var(--line);border-radius:20px;padding:22px}
+.row{display:flex;gap:10px;justify-content:flex-end}
+</style></head><body>
+<div class="w">
+ <div class="card lg" id="login">
+  <div class="logo"><svg viewBox="0 0 24 24"><path d="m7 4 13 8-13 8z"/></svg></div>
+  <h1>Manage Playlists</h1><div class="mu">Aurora IPTV</div>
+  <label>Mac Address<input id="mac" placeholder="AA:BB:CC:DD:EE:FF" dir="ltr" autocomplete="off"></label>
+  <label>Device Key<input id="key" placeholder="Numeric key" inputmode="numeric" dir="ltr" autocomplete="off"></label>
+  <div class="err" id="e1"></div><button id="go">Login</button>
+  <div class="mu" style="font-size:13px">You can find both values in the app: Settings (bottom of the page) or Playlist page.</div>
+ </div>
+ <div id="app" hidden style="display:none;gap:18px">
+  <div class="card top"><div><h2>Aurora IPTV</h2><small>Manage playlists</small></div><button class="r" id="out">Log out</button></div>
+  <div class="info"><div class="box"><small>MAC ADDRESS</small><b id="im" dir="ltr"></b></div><div class="box"><small>DEVICE KEY</small><b id="ik" dir="ltr"></b></div></div>
+  <div class="card" style="display:grid;gap:14px"><div class="top"><h2>Playlists <span class="mu" id="cnt"></span></h2></div>
+   <div class="bar"><button data-add="m3u">ADD M3U URL</button><button data-add="xtream">XTREAM-CODES-API</button><button data-add="mac">MAC PORTAL</button><div class="sp"></div><input id="flt" placeholder="Filter"></div>
+   <div style="overflow:auto"><table><thead><tr><th>Name</th><th>Type</th><th>Server / URL</th><th>User</th><th>Actions</th></tr></thead><tbody id="tb"></tbody></table></div>
+   <div class="mu" id="ent"></div></div>
+ </div>
+</div>
+<div id="md" hidden><div class="mc"><h2 id="mt"></h2><label>Name<input id="nm"></label><div id="ff" style="display:grid;gap:10px" dir="ltr"></div><div class="err" id="e2"></div><div class="row"><button class="g" id="mx">Cancel</button><button id="ms">Save</button></div></div></div>
+<script>
+const $=s=>document.querySelector(s);let K="",L=[],M={type:"m3u",id:""};
+const F={xtream:[["s","Server URL (http://host:port)"],["u","Username"],["p","Password"]],m3u:[["u","M3U URL"]],mac:[["p","Portal URL (http://host/c/)"],["m","MAC Address (00:1A:79:XX:XX:XX)"]]};
+const LB={xtream:"Xtream",m3u:"M3U",mac:"MAC Portal"};
+const api=(p,o)=>fetch("/api/"+p+(p.includes("?")?"&":"?")+"k="+encodeURIComponent(K),o).then(r=>{if(!r.ok)throw new Error(r.status);return r.json()});
+function show(on){$("#login").style.display=on?"none":"grid";$("#app").style.display=on?"grid":"none"}
+function login(mac,key,quiet){return fetch("/api/login",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({mac,key})}).then(r=>{if(r.status===429)throw new Error("Too many attempts. Try again later.");if(!r.ok)throw new Error("Wrong MAC address or device key.");return r.json()}).then(d=>{K=d.key;sessionStorage.setItem("mk",JSON.stringify([mac,key]));$("#im").textContent=mac;$("#ik").textContent=key;show(true);draw()}).catch(e=>{if(!quiet)$("#e1").textContent=e.message;sessionStorage.removeItem("mk");show(false)})}
+$("#go").onclick=()=>login($("#mac").value.trim(),$("#key").value.trim());
+$("#out").onclick=()=>{sessionStorage.removeItem("mk");K="";show(false)};
+function draw(){api("playlists").then(l=>{L=l;render()}).catch(()=>{show(false)})}
+function render(){const q=$("#flt").value.trim().toLowerCase(),tb=$("#tb");tb.innerHTML="";const a=L.filter(x=>!q||x.name.toLowerCase().includes(q));
+ $("#cnt").textContent="("+L.length+")";$("#ent").textContent="Showing "+a.length+" of "+L.length+" entries";
+ if(!a.length){const r=tb.insertRow(),c=r.insertCell();c.colSpan=5;c.className="mu";c.textContent="No playlists found.";return}
+ a.forEach(x=>{const r=tb.insertRow();const d=x.data;[x.name,LB[x.type],d.s||d.u||d.p||"",d.u&&x.type==="xtream"?d.u:(d.m||"")].forEach((t,i)=>{const c=r.insertCell();if(i===1){const s=document.createElement("span");s.className="tag";s.textContent=t;c.appendChild(s)}else c.textContent=t});
+  const c=r.insertCell();c.className="a";const e=document.createElement("button");e.className="g";e.textContent="Edit";e.onclick=()=>open(x.type,x);const del=document.createElement("button");del.className="r";del.textContent="Delete";del.onclick=()=>{if(confirm("Delete “"+x.name+"”?"))api("playlists?id="+encodeURIComponent(x.id),{method:"DELETE"}).then(draw)};c.append(e,del)})}
+function open(type,it){M={type,id:it?it.id:""};$("#mt").textContent=it?"Edit playlist":"Add playlist — "+LB[type];$("#nm").value=it?it.name:"";$("#e2").textContent="";const ff=$("#ff");ff.innerHTML="";
+ F[type].forEach(([k,ph])=>{const i=document.createElement("input");i.dataset.k=k;i.placeholder=ph;i.value=it?(it.data[k]||""):"";if(type==="xtream"&&k==="p")i.type="password";ff.appendChild(i)});$("#md").hidden=false}
+document.querySelectorAll("[data-add]").forEach(b=>b.onclick=()=>open(b.dataset.add));
+$("#mx").onclick=()=>$("#md").hidden=true;$("#flt").oninput=render;
+$("#ms").onclick=()=>{const data={};document.querySelectorAll("#ff input").forEach(i=>data[i.dataset.k]=i.value.trim());
+ if(!$("#nm").value.trim()||Object.values(data).some(v=>!v)){$("#e2").textContent="Please fill in all fields.";return}
+ api("playlists"+(M.id?"?id="+encodeURIComponent(M.id):""),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:$("#nm").value,type:M.type,data})}).then(()=>{$("#md").hidden=true;draw()}).catch(()=>$("#e2").textContent="Could not save.")};
+const h=location.hash.slice(1).split("|");
+if(h.length===2&&h[0]&&h[1]){history.replaceState(null,"",location.pathname);login(h[0],h[1],true)}
+else{try{const s=JSON.parse(sessionStorage.getItem("mk"));if(s)login(s[0],s[1],true)}catch(e){}}
+</script></body></html>
